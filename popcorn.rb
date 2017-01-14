@@ -3,8 +3,8 @@ require 'mechanize'
 require 'ruby-progressbar'
 require 'colorize'
 
-sep      = ('-'*60).colorize(:cyan)
-leets    = [ 'T3N38R15', 'MakMan', 'Maini', 'Muhit' ] 
+$sep      = ('-'*60).colorize(:cyan)
+leets     = [ 'T3N38R15', 'MakMan', 'Maini', 'Muhit' ] 
 
 puts '  _____                                ___  
  |  __ \                              |__ \ 
@@ -16,7 +16,7 @@ puts '  _____                                ___
             |_|                            '.colorize(:yellow)
 print 'Greets to ~ '.colorize(:green)
 leets.each { |leet| (leet == leets.last ? (puts leet.colorize(:cyan)) : (print leet.colorize(:cyan) + ' -- ')) } # .. I know.
-puts sep
+puts $sep
 
 print 'TV Show --> '.colorize(:red)
 show    = gets.chomp
@@ -24,11 +24,17 @@ print 'Season  --> '.colorize(:red)
 season  = gets.chomp
 
 def get_links(url)
-	mechanize = Mechanize.new
-	html      = mechanize.get(url)
-	links     = html.links.drop(7)
-	return links
+  begin
+    mechanize = Mechanize.new
+    html      = mechanize.get(url)
+    links     = html.links.drop(7)
+  rescue StandardError
+    puts $sep
+    abort("That show/season doesn't exist\n".colorize(:red) + $sep)
+  end
+  return links
 end
+
 def dload(url, file, folder, show)
   # thanks user:923315[stackoverflow]
   pbar = nil
@@ -52,7 +58,7 @@ end
 
 url   = (season == '' ? "http://178.216.250.169/Series/#{show}/" : "http://178.216.250.169/Series/#{show}/s#{season}/")
 links = get_links(url)
-puts sep
+puts $sep
 
 links.each{|link|
   link = link.href
