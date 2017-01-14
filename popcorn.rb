@@ -29,7 +29,7 @@ def get_links(url)
 	links     = html.links.drop(7)
 	return links
 end
-def dload(url, file, folder)
+def dload(url, file, folder, show)
   # thanks user:923315[stackoverflow]
   pbar = nil
   open(url, "rb",
@@ -41,7 +41,7 @@ def dload(url, file, folder)
     :progress_proc => lambda {|s|
      pbar.progress = s if pbar
     }) do |page|
-    File.open("Season #{folder}/#{file}", "wb") do |f|
+    File.open("#{show}/Season #{folder}/#{file}", "wb") do |f|
       while chunk = page.read(1024)
         f.write(chunk)
       end
@@ -55,18 +55,21 @@ links = get_links(url)
 puts sep
 
 links.each{|link|
+  link = link.href
   if season == ''
     puts "Season #{link.to_s.delete("^0-9")}".colorize(:blue)
     episodes = get_links("#{url}#{link}")
     episodes.each{|epi|
+      epi = epi.href
       episodeSize = (((Mechanize.new.head("#{url}#{link}#{epi}")['content-length'].to_i/1024/1024) * 100) / 100)
-      puts epi.to_s.colorize(:green) + ' ~ ' + (episodeSize.to_s + 'MB').colorize(:green)
+      puts URI.unescape(epi).to_s.colorize(:green) + ' ~ ' + (episodeSize.to_s + 'MB').colorize(:green)
     }
   else
     puts "Season #{season.to_s.delete("^0-9")}".colorize(:blue)
     episodeSize = (((Mechanize.new.head("#{url}#{link}")['content-length'].to_i/1024/1024) * 100) / 100)
-    puts link.to_s.colorize(:green) + ' ~ ' + (episodeSize.to_s + 'MB').colorize(:green)
-    Dir.mkdir("Season #{season}") unless File.directory?("Season #{season}")
-    dload(URI::encode("#{url}#{link}"), link, season)
+    puts URI.unescape(link).to_s.colorize(:green) + ' ~ ' + (episodeSize.to_s + 'MB').colorize(:green)
+    Dir.mkdir(show) unless File.directory?(show)
+    Dir.mkdir("#{show}/Season #{season}") unless File.directory?("#{show}/Season #{season}")
+    dload((URI::encode("#{url}") + link), URI.unescape(link), season, show)
   end
 }
