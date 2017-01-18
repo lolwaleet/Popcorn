@@ -86,4 +86,4 @@ links.each{|link|
   end
 }
 
-abort("[!#{']'.colorize(:red)}] ~ That show isn't available! :(\n" + $sep) unless $found
+abort("[#{'!'.colorize(:red)}] ~ That show isn't available! :(\n" + $sep) unless $found
