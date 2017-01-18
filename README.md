@@ -5,9 +5,9 @@ Popcorn? is a simple script that I coded (expect bugs) that allows you to downlo
 ### Screenshots
 
 #### Getting Information
-![Fetch](http://i.imgur.com/mvIwt8D.png)
+![Fetch](http://i.imgur.com/XUS9zKl.png)
 #### Downloading
-![Download](http://i.imgur.com/vEPHJmP.png)
+![Download](http://i.imgur.com/10UqC0V.png)
 
 ### ⚠️ Requirements
 
