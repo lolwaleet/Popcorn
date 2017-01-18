@@ -18,11 +18,6 @@ print 'Greets to ~ '.colorize(:green)
 leets.each { |leet| (leet == leets.last ? (puts leet.colorize(:cyan)) : (print leet.colorize(:cyan) + ' -- ')) } # .. I know.
 puts $sep
 
-print 'TV Show --> '.colorize(:red)
-show    = gets.chomp
-print 'Season  --> '.colorize(:red)
-season  = gets.chomp
-
 def get_links(url)
   begin
     mechanize = Mechanize.new
@@ -34,6 +29,14 @@ def get_links(url)
   end
   return links
 end
+
+print 'TV Show (eg; Castle) --> '.colorize(:red)
+show  = gets.chomp
+print 'Fetch/Download       --> '.colorize(:red)
+dload = gets.chomp.downcase
+url   = 'http://178.216.250.169/Series/'
+links = get_links(url)
+puts $sep
 
 def dload(url, file, folder, show)
   # thanks user:923315[stackoverflow]
@@ -56,26 +59,31 @@ def dload(url, file, folder, show)
   end
 end
 
-url   = (season == '' ? "http://178.216.250.169/Series/#{show}/" : "http://178.216.250.169/Series/#{show}/s#{season}/")
-links = get_links(url)
-puts $sep
-
 links.each{|link|
   link = link.href
-  if season == ''
-    puts "Season #{link.to_s.delete("^0-9")}".colorize(:blue)
-    episodes = get_links("#{url}#{link}")
-    episodes.each{|epi|
-      epi = epi.href
-      episodeSize = (((Mechanize.new.head("#{url}#{link}#{epi}")['content-length'].to_i/1024/1024) * 100) / 100)
-      puts URI.unescape(epi).to_s.colorize(:green) + ' ~ ' + (episodeSize.to_s + 'MB').colorize(:green)
+  if link.chomp('/').downcase == URI.escape(show.downcase)
+    $found   = true
+    seasons = get_links("#{url}#{link}")
+    puts 'Season(s) Available ~'.colorize(:green)
+    seasons.each.with_index(1) {|season, i|
+      puts '['.colorize(:cyan) +  i.to_s.colorize(:green) + ']'.colorize(:cyan) + ' ~ ' + "Season #{season.to_s.delete("^0-9")}".colorize(:blue)
     }
-  else
-    puts "Season #{season.to_s.delete("^0-9")}".colorize(:blue)
-    episodeSize = (((Mechanize.new.head("#{url}#{link}")['content-length'].to_i/1024/1024) * 100) / 100)
-    puts URI.unescape(link).to_s.colorize(:green) + ' ~ ' + (episodeSize.to_s + 'MB').colorize(:green)
-    Dir.mkdir(show) unless File.directory?(show)
-    Dir.mkdir("#{show}/Season #{season}") unless File.directory?("#{show}/Season #{season}")
-    dload((URI::encode("#{url}") + link), URI.unescape(link), season, show)
+    puts $sep
+    print 'Season (eg; 1)       --> '.colorize(:red)
+    wantedSeason = gets.chomp
+    puts $sep
+    episodes = get_links("#{url}#{link}/s#{wantedSeason}")
+    episodes.each{|episode|
+      epiSize = (((Mechanize.new.head("#{url}#{link}/s#{wantedSeason}/#{URI.unescape(episode.href)}")['content-length'].to_i/1024/1024) * 100) / 100).to_s
+      puts URI.unescape(episode.href).colorize(:green) + ' ~ ' + (epiSize.to_s + 'MB').colorize(:green)
+      if dload == 'download'
+        Dir.mkdir(show) unless File.directory?(show)
+        Dir.mkdir("#{show}/Season #{wantedSeason}") unless File.directory?("#{show}/Season #{wantedSeason}")
+        dload("#{url}#{link}/s#{wantedSeason}/#{episode.href}", URI.unescape(episode.href), wantedSeason, show)
+      end
+  }
+  puts $sep
   end
 }
+
+abort("[!#{']'.colorize(:red)}] ~ That show isn't available! :(\n" + $sep) unless $found
